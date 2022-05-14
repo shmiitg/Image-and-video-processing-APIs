@@ -57,25 +57,23 @@ router.post("/merge_image_and_audio", async (req, res) => {
     const { image_file_path, audio_file_path } = req.body;
     const image_path = path.join(__basedir + "/" + image_file_path);
     const audio_path = path.join(__basedir + "/" + audio_file_path);
+    const final_path = "public/upload/image_and_audio.mp4";
     exec(`ffmpeg -framerate 1/5 -i ${image_path} "public/upload/image_to_video.mp4"`, (err) => {
         if (err) {
             res.status(500).json({ error: err });
         } else {
             const image_video_path = path.join(__basedir + "/", "/public/upload/image_to_video.mp4");
-            exec(
-                `ffmpeg -i ${image_video_path} -i ${audio_path} -c:v copy -c:a aac "public/upload/image_and_audio.mp4"`,
-                (err) => {
-                    if (err) {
-                        res.status(500).json({ error: err });
-                    } else {
-                        res.status(200).json({
-                            status: "ok",
-                            message: "Video Created Successfully",
-                            video_file_path: "public/upload/output2.mp4",
-                        });
-                    }
+            exec(`ffmpeg -i ${image_video_path} -i ${audio_path} -c:v copy -c:a aac ${final_path}`, (err) => {
+                if (err) {
+                    res.status(500).json({ error: err });
+                } else {
+                    res.status(200).json({
+                        status: "ok",
+                        message: "Video Created Successfully",
+                        video_file_path: final_path,
+                    });
                 }
-            );
+            });
         }
     });
 });
@@ -85,7 +83,7 @@ router.post("/merge_video_and_audio", (req, res) => {
     const { video_file_path, audio_file_path } = req.body;
     const base_video_path = path.join(__basedir + "/" + video_file_path);
     const base_audio_path = path.join(__basedir + "/" + audio_file_path);
-    const final_path = "video_audio.mp4";
+    const final_path = "public/upload/video_audio.mp4";
     exec(
         `ffmpeg -i ${base_video_path} -i ${base_audio_path} -c:v copy -c:a aac -map 0:v:0 -map 1:a:0 ${final_path}`,
         (err) => {
@@ -114,7 +112,7 @@ router.post("/merge_all_video", (req, res) => {
     // write all file paths in a txt file
     fs.writeFileSync(path.join(__basedir + "/temp.txt"), content);
     const txt_file_path = path.join(__basedir + "/temp.txt");
-    const final_video_path = "merged_video.mp4";
+    const final_video_path = "public/upload/merged_video.mp4";
     exec(`ffmpeg -f concat -safe 0 -i ${txt_file_path} -c copy ${final_video_path}`, (err) => {
         // delete txt file
         fs.unlinkSync(path.join(__basedir + "/temp.txt"));
